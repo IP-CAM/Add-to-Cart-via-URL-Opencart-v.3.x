@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<modification>
+  <generator>Created with OpenIX - https://openix.io/en/tool/opencart/ocmod</generator>
+  <name>Direct Add to Cart Link</name>
+  <version>1.0</version>
+  <code>add_to_cart_link</code>
+  <author>M. Furkan Yılmaz</author>
+  <link>https://mfurkanyilmaz.com</link>
+
+  <file path="catalog/view/theme/*/template/product/product.twig">
+    <operation info="Addin Function of Error">
+      <search><![CDATA[{{ footer }}
+]]></search>
+      <add position="before"><![CDATA[{# FURKAN #}
+<script>
+	var postDataAddToCart = {{ addtocartresult }}
+if (postDataAddToCart['error']) {
+if (postDataAddToCart['error']['option']) {
+for (i in postDataAddToCart['error']['option']) {
+var element = $('#input-option' + i.replace('_', '-'));
+
+if (element.parent().hasClass('input-group')) {
+element.parent().after('<div class="text-danger">' + postDataAddToCart['error']['option'][i] + '</div>');
+} else {
+element.after('<div class="text-danger">' + postDataAddToCart['error']['option'][i] + '</div>');
+}
+}
+}
+
+if (postDataAddToCart['error']['recurring']) {
+$('select[name=\'recurring_id\']').after('<div class="text-danger">' + postDataAddToCart['error']['recurring'] + '</div>');
+}
+
+// Highlight any found errors
+$('.text-danger').parent().addClass('has-error');
+}
+</script>
+{# FURKAN #}]]></add>
+    </operation>
+
+  </file>
+
+  <file path="admin/view/template/catalog/product_list.twig">
+    <operation info="Coppy Clipboard Function">
+      <search><![CDATA[<script]]></search>
+      <add position="before"><![CDATA[	{# FURKAN #}
+	<script>
+		$('.copy-btn').click(function () {
+idforcopy = $(this).siblings('.addtocartid');
+console.log(idforcopy[0]);
+copyToClipboard(idforcopy[0])
+})
+function copyToClipboard(element) {
+var copyText = element;
+console.log(copyText);
+
+/* Select the text field */
+copyText.select();
+
+/* Copy the text inside the text field */
+document.execCommand("copy");
+
+/* Alert the copied text */
+alert("You Can Add Copied Text To URL of Your Website. Copied Link: " + copyText.value);
+}
+	</script>
+	{# FURKAN #}]]></add>
+    </operation>
+    <operation info="Add Copy Button">
+      <search><![CDATA[<td class="text-right"><a href="{{ product.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a></td>
+]]></search>
+      <add position="replace"><![CDATA[													<td class="text-right">
+														<a href="{{ product.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary">
+															<i class="fa fa-pencil"></i>
+														</a>
+														{# FURKAN #}
+														<input type="text" style="height: 0px;width: 0px;overflow: hidden;position: absolute;left:100000px" class="addtocartid" value="index.php?route=checkout/add/tocart&product_id={{ product.product_id }}">
+														<button type="button" form="form-product" data-toggle="tooltip" title="Copy Link" class="btn btn-info copy-btn" id="{{ product.product_id }}">
+															<i class="fa fa-copy"></i>
+														</button>
+
+														{# FURKAN #}
+													</td>]]></add>
+    </operation>
+
+  </file>
+
+  <file path="catalog/controller/product/product.php">
+    <operation info="Adding Function of Process">
+      <search><![CDATA[$this->document->setTitle($product_info['meta_title']);
+]]></search>
+      <add position="before"><![CDATA[
+			// FURKAN
+			if(isset($this->request->post['error_addtocart'])){
+				$data['addtocartresult'] = json_encode($this->request->post['error_addtocart']);
+			}else{
+				$data['addtocartresult'] = 'SORUN YOOOK';
+			}
+			// FURKAN]]></add>
+    </operation>
+
+  </file>
+</modification>
